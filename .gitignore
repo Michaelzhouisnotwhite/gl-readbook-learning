@@ -1,0 +1,10 @@
+build/*
+!build/templates
+bin/*
+!bin/media/
+*.lib
+.vscode/ 
+.vscode/compile_commands.json 
+.vscode/tasks.json
+.vscode/**
+*build*
