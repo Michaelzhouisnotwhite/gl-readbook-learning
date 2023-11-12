@@ -5,6 +5,8 @@
 #include "vgl.h"
 #include <GLFW/glfw3.h>
 #include <array>
+#include <cmath>
+#include <iostream>
 #include <stdint.h>
 #include <toy/type.h>
 
@@ -20,49 +22,62 @@ const char* vertexShaderSource = R"(
 const char* fragmentShaderSource = R"(
 #version 330 core
 out vec4 FragColor;
+
+uniform vec4 outColor;
 void main() {
-    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
-}
-)";
-const char* fragmentShader2Source = R"(
-#version 330 core
-out vec4 FragColor;
-void main() {
-    FragColor = vec4(1.0f, 1.0f, 0.0f, 1.0f);
+    FragColor = outColor;
 }
 )";
 
 u32 vertexShader;
-u32 fragmentShaderOrange;
-u32 fragmentShaderYellow;
-u32 shaderProgramOrange;
-unsigned int shaderProgramYellow;
+u32 fragmentShader;
+u32 shaderProgram;
 
 u32 VBOs[2];
 u32 VAOs[2];
 void init()
 {
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    fragmentShaderOrange = glCreateShader(GL_FRAGMENT_SHADER);
-    fragmentShaderYellow = glCreateShader(GL_FRAGMENT_SHADER);
-    shaderProgramOrange = glCreateProgram();
-    shaderProgramYellow = glCreateProgram();
-
+    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
     glCompileShader(vertexShader);
-    glShaderSource(fragmentShaderOrange, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShaderOrange);
-    glShaderSource(fragmentShaderYellow, 1, &fragmentShader2Source, NULL);
-    glCompileShader(fragmentShaderYellow);
-    // link the first program object
-    glAttachShader(shaderProgramOrange, vertexShader);
-    glAttachShader(shaderProgramOrange, fragmentShaderOrange);
-    glLinkProgram(shaderProgramOrange);
-    // then link the second program object using a different fragment shader (but same vertex shader)
-    // this is perfectly allowed since the inputs and outputs of both the vertex and fragment shaders are equally matched.
-    glAttachShader(shaderProgramYellow, vertexShader);
-    glAttachShader(shaderProgramYellow, fragmentShaderYellow);
-    glLinkProgram(shaderProgramYellow);
+    int success;
+    char infoLog[512];
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
+                  << infoLog << std::endl;
+        std::abort();
+    }
+
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glCompileShader(fragmentShader);
+
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
+                  << infoLog << std::endl;
+        std::abort();
+    }
+
+    shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+    // check for linking errors
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n"
+                  << infoLog << std::endl;
+        std::abort();
+    }
+
+    // 删除着色器，它们已经链接到我们的程序中了，已经不再需要了
+    gl3wDeleteShader(vertexShader);
+    gl3wDeleteShader(fragmentShader);
 
     glGenVertexArrays(2, VAOs);
     glGenBuffers(2, VBOs);
@@ -79,6 +94,11 @@ void display()
         0.45f, 0.5f, 0.0f, // top
         0.9f, -0.5f, 0.0f // right
     };
+
+    float timeValue = glfwGetTime();
+    float greenValue = (std::sin(timeValue) / 2.0) + 0.5;
+    int vertexColorLocation = glGetUniformLocation(shaderProgram, "outColor");
+
     glBindVertexArray(VAOs[0]);
     glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(firstTriangle), firstTriangle, GL_DYNAMIC_COPY);
@@ -94,11 +114,12 @@ void display()
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glUseProgram(shaderProgramOrange);
+    glUseProgram(shaderProgram);
+
+    glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0, 1.0f);
     glBindVertexArray(VAOs[0]);
     glDrawArrays(GL_TRIANGLES, 0, 3); // 第三个参数是要绘制多少个顶点
 
-    glUseProgram(shaderProgramYellow);
     glBindVertexArray(VAOs[1]);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }

@@ -3,9 +3,9 @@ cmake_minimum_required(VERSION 2.6)
 project(vermilion9)
 include(FetchContent)
 FetchContent_Declare(
-    toy
-    GIT_REPOSITORY https://github.com/Michaelzhouisnotwhite/My-CXX-Small-Toys
-    GIT_TAG main
+  toy
+  GIT_REPOSITORY https://github.com/Michaelzhouisnotwhite/My-CXX-Small-Toys
+  GIT_TAG main
 )
 FetchContent_MakeAvailable(toy)
 execute_process(
@@ -13,19 +13,21 @@ execute_process(
   -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/lib/glfw_install
 )
 execute_process(
-  COMMAND ${CMAKE_COMMAND}  --build ${CMAKE_BINARY_DIR}/lib/glfw_build --config Release
+  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/lib/glfw_build --config Release
 )
 execute_process(
-  COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR}/lib/glfw_build 
+  COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR}/lib/glfw_build
 )
 
 find_package(glfw3 REQUIRED PATHS ${CMAKE_BINARY_DIR}/lib/glfw_install/lib/glfw NO_DEFAULT_PATH)
 include(CheckCXXCompilerFlag)
 message("glfw_DIR: " ${glfw3_DIR})
 file(GLOB glfw3_cmake ${glfw3_DIR}/*.cmake)
+
 foreach(cmake_file ${glfw3_cmake})
   include(${cmake_file})
 endforeach()
+
 LINK_DIRECTORIES(${CMAKE_SOURCE_DIR}/lib)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -52,7 +54,7 @@ else()
   set(COMMON_LIBS vermilion)
 endif()
 
-set(COMMON_HEADERS include/vgl.h include/vapp.h)
+set(COMMON_HEADERS include/vgl.h include/vapp.h include/Shader.hpp)
 
 set(COMMON_LIBS ${COMMON_LIBS} ${EXTRA_LIBS})
 
@@ -111,7 +113,6 @@ if(OPENMP_FOUND)
 endif()
 
 # add_subdirectory(lib/glfw)
-
 foreach(EXAMPLE ${EXAMPLES})
   add_executable(${EXAMPLE} WIN32 src/${EXAMPLE}/${EXAMPLE}.cpp ${COMMON_HEADERS})
   set_property(TARGET ${EXAMPLE} PROPERTY DEBUG_POSTFIX _d)
@@ -129,8 +130,9 @@ foreach(EXAMPLE ${EXAMPLES})
   endif(MSVC)
 endforeach(EXAMPLE)
 
-#####################
+# ####################
 add_executable(test_triangles2 src/01-triangles/test_triangles2.cpp ${COMMON_HEADERS})
+
 if(WIN32)
   target_include_directories(test_triangles2 PRIVATE ${CMAKE_BINARY_DIR}/lib)
 endif()
@@ -138,13 +140,39 @@ endif()
 target_link_libraries(test_triangles2 ${COMMON_LIBS})
 target_link_directories(test_triangles2 PRIVATE ${CMAKE_BINARY_DIR}/lib/glfw_install/lib)
 target_link_libraries(test_triangles2 glfw3 toy::generic)
-############################################
+
+add_executable(test_triangles3 src/01-triangles/test_triangles3.cpp ${COMMON_HEADERS})
+
+if(WIN32)
+  target_include_directories(test_triangles3 PRIVATE ${CMAKE_BINARY_DIR}/lib)
+endif()
+
+target_link_libraries(test_triangles3 ${COMMON_LIBS})
+target_link_directories(test_triangles3 PRIVATE ${CMAKE_BINARY_DIR}/lib/glfw_install/lib)
+target_link_libraries(test_triangles3 glfw3 toy::generic)
+add_executable(test_triangles4 src/01-triangles/test_triangles4.cpp ${COMMON_HEADERS})
+
+if(WIN32)
+  target_include_directories(test_triangles4 PRIVATE ${CMAKE_BINARY_DIR}/lib)
+endif()
+
+target_link_libraries(test_triangles4 ${COMMON_LIBS})
+target_link_directories(test_triangles4 PRIVATE ${CMAKE_BINARY_DIR}/lib/glfw_install/lib)
+target_link_libraries(test_triangles4 glfw3 toy::generic)
+
+# ###########################################
+add_library(MyShader src/Shader.cpp)
+target_link_libraries(MyShader PRIVATE ${COMMON_LIBS})
+target_link_directories(MyShader PRIVATE ${CMAKE_BINARY_DIR}/lib/glfw_install/lib)
+target_link_libraries(MyShader PRIVATE glfw3 toy::generic)
+target_include_directories(MyShader PUBLIC include)
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_LINUX")
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 include_directories(include)
+
 # include_directories(lib/glfw/include)
 include_directories(${CMAKE_BINARY_DIR}/lib/glfw_install/include)
 
