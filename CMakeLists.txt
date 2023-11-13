@@ -18,15 +18,16 @@ execute_process(
 execute_process(
   COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR}/lib/glfw_build
 )
-
-find_package(glfw3 REQUIRED PATHS ${CMAKE_BINARY_DIR}/lib/glfw_install/lib/glfw NO_DEFAULT_PATH)
-include(CheckCXXCompilerFlag)
-message("glfw_DIR: " ${glfw3_DIR})
-file(GLOB glfw3_cmake ${glfw3_DIR}/*.cmake)
-
-foreach(cmake_file ${glfw3_cmake})
-  include(${cmake_file})
-endforeach()
+if(WIN32)
+  find_package(glfw3 REQUIRED PATHS ${CMAKE_BINARY_DIR}/lib/glfw_install/lib/cmake/glfw NO_DEFAULT_PATH)
+  include(CheckCXXCompilerFlag)
+  message("glfw_DIR: " ${glfw3_DIR})
+  file(GLOB glfw3_cmake ${glfw3_DIR}/*.cmake)
+  
+  foreach(cmake_file ${glfw3_cmake})
+    include(${cmake_file})
+  endforeach()
+endif()
 
 LINK_DIRECTORIES(${CMAKE_SOURCE_DIR}/lib)
 
@@ -117,7 +118,7 @@ message("my test source file: " ${my_test_files})
 foreach(test_file ${my_test_files})
   get_filename_component(test_file_name ${test_file} NAME_WLE)
   add_executable(${test_file_name} WIN32 ${test_file} ${COMMON_HEADERS})
-  target_link_libraries(${test_file_name} ${COMMON_LIBS})
+  target_link_libraries(${test_file_name} ${COMMON_LIBS} toy::generic)
   if(MSVC)
     configure_file(${PROJECT_SOURCE_DIR}/build/templates/vs2013.vcxproj.user.in ${CMAKE_CURRENT_BINARY_DIR}/${EXAMPLE}.vcxproj.user @ONLY)
   endif(MSVC)
@@ -133,43 +134,11 @@ foreach(EXAMPLE ${EXAMPLES})
   target_link_libraries(${EXAMPLE} ${COMMON_LIBS})
   target_link_directories(${EXAMPLE} PRIVATE ${CMAKE_BINARY_DIR}/lib/glfw_install/lib)
   target_link_libraries(${EXAMPLE} glfw3)
-
   if(MSVC)
     configure_file(${PROJECT_SOURCE_DIR}/build/templates/vs2013.vcxproj.user.in ${CMAKE_CURRENT_BINARY_DIR}/${EXAMPLE}.vcxproj.user @ONLY)
   endif(MSVC)
 endforeach(EXAMPLE)
 
-# ####################
-add_executable(test_triangles2 src/01-triangles/test_triangles2.cpp ${COMMON_HEADERS})
-
-if(WIN32)
-  target_include_directories(test_triangles2 PRIVATE ${CMAKE_BINARY_DIR}/lib)
-endif()
-
-target_link_libraries(test_triangles2 ${COMMON_LIBS})
-target_link_directories(test_triangles2 PRIVATE ${CMAKE_BINARY_DIR}/lib/glfw_install/lib)
-target_link_libraries(test_triangles2 glfw3 toy::generic)
-
-add_executable(test_triangles3 src/01-triangles/test_triangles3.cpp ${COMMON_HEADERS})
-
-if(WIN32)
-  target_include_directories(test_triangles3 PRIVATE ${CMAKE_BINARY_DIR}/lib)
-endif()
-
-target_link_libraries(test_triangles3 ${COMMON_LIBS})
-target_link_directories(test_triangles3 PRIVATE ${CMAKE_BINARY_DIR}/lib/glfw_install/lib)
-target_link_libraries(test_triangles3 glfw3 toy::generic)
-add_executable(test_triangles4 src/01-triangles/test_triangles4.cpp ${COMMON_HEADERS})
-
-if(WIN32)
-  target_include_directories(test_triangles4 PRIVATE ${CMAKE_BINARY_DIR}/lib)
-endif()
-
-target_link_libraries(test_triangles4 ${COMMON_LIBS})
-target_link_directories(test_triangles4 PRIVATE ${CMAKE_BINARY_DIR}/lib/glfw_install/lib)
-target_link_libraries(test_triangles4 glfw3 toy::generic)
-
-# ###########################################
 add_library(MyShader src/Shader.cpp)
 target_link_libraries(MyShader PRIVATE ${COMMON_LIBS})
 target_link_directories(MyShader PRIVATE ${CMAKE_BINARY_DIR}/lib/glfw_install/lib)

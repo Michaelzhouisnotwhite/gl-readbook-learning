@@ -32,8 +32,7 @@ u32 shaderProgram;
 
 u32 VBOs[2];
 u32 VAOs[2];
-void init()
-{
+void init() {
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
@@ -43,8 +42,7 @@ void init()
     glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
-                  << infoLog << std::endl;
+        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
         std::abort();
     }
 
@@ -54,8 +52,7 @@ void init()
     glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
-                  << infoLog << std::endl;
+        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
         std::abort();
     }
 
@@ -67,29 +64,38 @@ void init()
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n"
-                  << infoLog << std::endl;
+        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
         std::abort();
     }
 
     // 删除着色器，它们已经链接到我们的程序中了，已经不再需要了
     gl3wDeleteShader(vertexShader);
     gl3wDeleteShader(fragmentShader);
-
+}
+void display() {
     glGenVertexArrays(2, VAOs);
     glGenBuffers(2, VBOs);
-}
-void display()
-{
     float firstTriangle[] = {
-        -0.9f, -0.5f, 0.0f, // left
-        -0.0f, -0.5f, 0.0f, // right
-        -0.45f, 0.3f, 0.0f, // top
+        -0.9f,
+        -0.5f,
+        0.0f,  // left
+        -0.0f,
+        -0.5f,
+        0.0f,  // right
+        -0.45f,
+        0.3f,
+        0.0f,  // top
     };
     float secondTriangle[] = {
-        0.0f, -0.5f, 0.0f, // left
-        0.45f, 0.5f, 0.0f, // top
-        0.9f, -0.5f, 0.0f // right
+        0.0f,
+        -0.5f,
+        0.0f,  // left
+        0.45f,
+        0.5f,
+        0.0f,  // top
+        0.9f,
+        -0.5f,
+        0.0f  // right
     };
     glBindVertexArray(VAOs[0]);
     glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
@@ -108,18 +114,20 @@ void display()
 
     glUseProgram(shaderProgram);
     glBindVertexArray(VAOs[0]);
-    glDrawArrays(GL_TRIANGLES, 0, 3); // 第三个参数是要绘制多少个顶点
+    glDrawArrays(GL_TRIANGLES, 0, 3);  // 第三个参数是要绘制多少个顶点
 
     glBindVertexArray(VAOs[1]);
     glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    glDeleteVertexArrays(2, VAOs);
+    glDeleteBuffers(2, VBOs);
 }
 
 #ifdef _WIN32
-int CALLBACK WinMain(
-    _In_ HINSTANCE hInstance,
-    _In_ HINSTANCE hPrevInstance,
-    _In_ LPSTR lpCmdLine,
-    _In_ int nCmdShow)
+int CALLBACK WinMain(_In_ HINSTANCE hInstance,
+                     _In_ HINSTANCE hPrevInstance,
+                     _In_ LPSTR lpCmdLine,
+                     _In_ int nCmdShow)
 #else
 int main(int argc, char** argv)
 #endif
