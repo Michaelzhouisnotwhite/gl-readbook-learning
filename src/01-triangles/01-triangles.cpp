@@ -33,8 +33,10 @@ init( void )
     };
 
     glCreateBuffers( NumBuffers, Buffers ); // 生成NumBuffers个缓冲，缓冲id保存到Buffers中
-    glBindBuffer( GL_ARRAY_BUFFER, Buffers[ArrayBuffer] );
-    glBufferStorage( GL_ARRAY_BUFFER, sizeof(vertices), vertices, 0);
+    glBindBuffer( GL_ARRAY_BUFFER, Buffers[ArrayBuffer] ); // 使用第ArrayBuffer号buffer
+
+    glBufferStorage( GL_ARRAY_BUFFER, sizeof(vertices), vertices, 0); // 创建一个ARRAY_BUFFER 保存vertices数据 最后一个参数表示数据不会改变
+    
 
     ShaderInfo  shaders[] =
     {
@@ -46,9 +48,17 @@ init( void )
     GLuint program = LoadShaders( shaders );
     glUseProgram( program );
 
+    /**
+     * 1. 着色器中变量位置，
+     * 2. 设置着色器中vec3的前两个参数，
+       3. GL_FLOAT是vec3的数据类型，
+     * 4. GL_FALSE不归格化，0表示歩长，也可以用sizeof(float) * 2，
+     这个参数的意思简单说就是从这个属性第二次出现的地方到整个数组0位置之间有多少字节。最后一个参数的类型是void*，所以需要我们进行这个奇怪的强制类型转换。它表示位置数据在缓冲中起始位置的偏移量(Offset)。
+     * 5. 它表示位置数据在缓冲中起始位置的偏移量(Offset)。由于位置数据在数组的开头，所以这里是0。
+     */
     glVertexAttribPointer( vPosition, 2, GL_FLOAT,
                            GL_FALSE, 0, BUFFER_OFFSET(0) );
-    glEnableVertexAttribArray( vPosition );
+    glEnableVertexAttribArray( vPosition ); // 启用着色器中vPosition位置的顶点数组
 }
 
 //----------------------------------------------------------------------------
@@ -59,12 +69,14 @@ init( void )
 void
 display( void )
 {
-    static const float black[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    static const float black[] = { 0.0f, 1.0f, 1.0f, 1.0f }; // 0-1的数字，1是白色，0是黑色
     // RGBA (透明度)
     glClearBufferfv(GL_COLOR, 0, black);
 
     glBindVertexArray( VAOs[Triangles] );
     glDrawArrays( GL_TRIANGLES, 0, NumVertices );
+    // 测试其他种类
+    // glDrawArrays( GL_TRIANGLE_FAN, 0, NumVertices );
 }
 
 //----------------------------------------------------------------------------
