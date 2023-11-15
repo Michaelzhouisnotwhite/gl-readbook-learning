@@ -18,15 +18,16 @@ execute_process(
 execute_process(
   COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR}/lib/glfw_build
 )
+
 if(WIN32)
-  find_package(glfw3 REQUIRED PATHS ${CMAKE_BINARY_DIR}/lib/glfw_install/lib/cmake/glfw NO_DEFAULT_PATH)
-  include(CheckCXXCompilerFlag)
-  message("glfw_DIR: " ${glfw3_DIR})
-  file(GLOB glfw3_cmake ${glfw3_DIR}/*.cmake)
-  
-  foreach(cmake_file ${glfw3_cmake})
-    include(${cmake_file})
-  endforeach()
+  # find_package(glfw3 REQUIRED PATHS ${CMAKE_BINARY_DIR}/lib/glfw_install/cmake NO_DEFAULT_PATH)
+  # include(CheckCXXCompilerFlag)
+  # message("glfw_DIR: " ${glfw3_DIR})
+  # file(GLOB glfw3_cmake ${glfw3_DIR}/*.cmake)
+
+  # foreach(cmake_file ${glfw3_cmake})
+  # include(${cmake_file})
+  # endforeach()
 endif()
 
 LINK_DIRECTORIES(${CMAKE_SOURCE_DIR}/lib)
@@ -43,8 +44,7 @@ foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_SOURCE_DIR}/lib)
 endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
 
-set(CMAKE_DEBUG_POSTFIX "_d")
-
+# set(CMAKE_DEBUG_POSTFIX "_d")
 find_package(OpenGL REQUIRED)
 
 if(WIN32)
@@ -112,28 +112,33 @@ if(OPENMP_FOUND)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
+
 file(GLOB_RECURSE my_test_files CONFIGURE_DEPENDS "src/*/test*.cpp")
 message("my test source file: " ${my_test_files})
 
 foreach(test_file ${my_test_files})
   get_filename_component(test_file_name ${test_file} NAME_WLE)
   add_executable(${test_file_name} WIN32 ${test_file} ${COMMON_HEADERS})
-  target_link_libraries(${test_file_name} ${COMMON_LIBS} toy::generic)
+  target_link_directories(${test_file_name} BEFORE PRIVATE ${CMAKE_BINARY_DIR}/lib/glfw_install/lib)
+  target_link_libraries(${test_file_name} ${COMMON_LIBS} toy::generic MyShader)
+  target_include_directories(${test_file_name} PRIVATE ${CMAKE_BINARY_DIR}/include)
   if(MSVC)
     configure_file(${PROJECT_SOURCE_DIR}/build/templates/vs2013.vcxproj.user.in ${CMAKE_CURRENT_BINARY_DIR}/${EXAMPLE}.vcxproj.user @ONLY)
   endif(MSVC)
 endforeach()
+
 foreach(EXAMPLE ${EXAMPLES})
   add_executable(${EXAMPLE} WIN32 src/${EXAMPLE}/${EXAMPLE}.cpp ${COMMON_HEADERS})
-  set_property(TARGET ${EXAMPLE} PROPERTY DEBUG_POSTFIX _d)
 
+  # set_property(TARGET ${EXAMPLE} PROPERTY DEBUG_POSTFIX _d)
   if(WIN32)
     target_include_directories(${EXAMPLE} PRIVATE ${CMAKE_BINARY_DIR}/lib)
   endif()
 
   target_link_libraries(${EXAMPLE} ${COMMON_LIBS})
-  target_link_directories(${EXAMPLE} PRIVATE ${CMAKE_BINARY_DIR}/lib/glfw_install/lib)
-  target_link_libraries(${EXAMPLE} glfw3)
+  target_link_directories(${EXAMPLE} BEFORE PRIVATE ${CMAKE_BINARY_DIR}/lib/glfw_install/lib)
+  target_link_libraries(${EXAMPLE} glfw3 MyShader)
+
   if(MSVC)
     configure_file(${PROJECT_SOURCE_DIR}/build/templates/vs2013.vcxproj.user.in ${CMAKE_CURRENT_BINARY_DIR}/${EXAMPLE}.vcxproj.user @ONLY)
   endif(MSVC)
@@ -141,7 +146,7 @@ endforeach(EXAMPLE)
 
 add_library(MyShader src/Shader.cpp)
 target_link_libraries(MyShader PRIVATE ${COMMON_LIBS})
-target_link_directories(MyShader PRIVATE ${CMAKE_BINARY_DIR}/lib/glfw_install/lib)
+target_link_directories(MyShader PUBLIC ${CMAKE_BINARY_DIR}/lib/glfw_install/lib)
 target_link_libraries(MyShader PRIVATE glfw3 toy::generic)
 target_include_directories(MyShader PUBLIC include)
 
@@ -156,3 +161,24 @@ include_directories(${CMAKE_BINARY_DIR}/lib/glfw_install/include)
 
 ADD_CUSTOM_TARGET(debug ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE:STRING=Debug ${PROJECT_SOURCE_DIR})
 ADD_CUSTOM_TARGET(release ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE:STRING=Release ${PROJECT_SOURCE_DIR})
+
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/include)
+  make_directory(${CMAKE_BINARY_DIR}/include)
+endif()
+
+file(GLOB asserts ${CMAKE_SOURCE_DIR}/bin/media/*)
+
+set(path_macro_path  ${CMAKE_BINARY_DIR}/include/path_macro.h)
+file(WRITE ${path_macro_path} "")
+file(APPEND ${path_macro_path} "#ifndef PATH_MACRO_PATH\n")
+file(APPEND ${path_macro_path} "#define PATH_MACRO_PATH\n")
+foreach(assert ${asserts})
+  message("assert: ${assert}")
+  get_filename_component(name ${assert} NAME)
+  string(REPLACE "." "_" name_with_on_dot ${name})
+  string(TOUPPER ${name_with_on_dot} name_macros)
+  file(APPEND ${path_macro_path} "#define ${name_macros} \"${assert}\"\n")
+  message("to macro: " "#define ${name_macros} \"${assert}\"\n")
+endforeach()
+file(APPEND ${path_macro_path} "#endif // PATH_MACRO_PATH\n")
+

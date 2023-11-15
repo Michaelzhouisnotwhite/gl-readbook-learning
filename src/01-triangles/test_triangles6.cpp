@@ -49,16 +49,27 @@ void init() {
     glGenBuffers(1, VBOs);
 }
 void display() {
-    // clang-format off
     float vertices[] = {
-        // 位置      // 颜色
-        0.5f,        -0.5f,        0.0f,
-        1.0f,        0.0f,        0.0f,  // 右下
-        -0.5f,        -0.5f,        0.0f,
-        0.0f,        1.0f,        0.0f,  // 左下
-        0.0f,        0.5f,        0.0f,
-        0.0f,        0.0f,        1.0f  // 顶部
-    };  // clang-format on
+        // 位置              // 颜色
+        0.5f,
+        -0.5f,
+        0.0f,
+        1.0f,
+        0.0f,
+        0.0f,  // 右下
+        -0.5f,
+        -0.5f,
+        0.0f,
+        0.0f,
+        1.0f,
+        0.0f,  // 左下
+        0.0f,
+        0.5f,
+        0.0f,
+        0.0f,
+        0.0f,
+        1.0f  // 顶部
+    };
 
     glBindVertexArray(VAOs[0]);
     glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
@@ -72,13 +83,13 @@ void display() {
                           GL_FLOAT,
                           GL_FALSE,
                           6 * sizeof(float),
-                          (void*)(3 * sizeof(float)));
+                          (void*)(0 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    shader_program_->setFloat("xOffset", 0.5);
+    shader_program_->setFloat("xOffset", 0.0);
     shader_program_->use();
 
     glBindVertexArray(VAOs[0]);
