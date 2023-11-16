@@ -210,9 +210,6 @@ void display() {
         }
     };
 
-    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f); // 设置摄像机的位置
-    glm::vec3 cameraTarget = glm::vec3(0.f, 0.f, 0.f); // 让摄像机指向原点
-
     // 更多的立方体，每个立方体在世界坐标中的位置
     Vec<glm::vec3> cubePositions = {glm::vec3(0.0f, 0.0f, 0.0f),
                                     glm::vec3(2.0f, 5.0f, -15.0f),
@@ -247,7 +244,31 @@ void display() {
 
         glm::mat4 view(1.0);
         // 向远处移动
-        view = glm::translate(view, glm::vec3(1.0, 1.0, -3.));
+        // view = glm::translate(view, glm::vec3(1.0, 1.0, -3.));
+
+        // glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);  // 设置摄像机的位置
+        // glm::vec3 cameraTarget = glm::vec3(0.f, 0.f, 0.f);  // 让摄像机指向原点
+        // glm::vec3 cameraDirection = glm::normalize(
+        //     cameraPos - cameraTarget);  // 向量减法，就知道摄像机方向了，摄像机方向
+
+        // 找出camera的右向量，找到camera的x, y, z轴
+        // 可以定义一个向上的向量，与camera 的方向叉乘，得到法向量 lookat做的事情
+        // glm::vec3 up = glm::vec3(0.0, 1.0, 0.0);
+        // glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
+        // glm::vec3 cameraUp = glm::normalize(glm::cross(cameraDirection, cameraRight));
+        // glm::mat4 view(1.0);
+        // 提供一个摄像机位置，一个摄像机看向的目标位置，一个表示世界空间中向上的向量，可以得到一个观察矩阵
+        // view = glm::lookAt(glm::vec3(0.0, 0.0, 3.0),
+        //                    glm::vec3(0.0, 0.0, 0.0),
+        //                    glm::vec3(0.0, 1.0, 0.0));
+
+        float radius = 10.0;  // 摄像机绕该半径旋转，同时始终朝向0, 0, 0点
+        float camX = sin(glfwGetTime()) * radius;  // 每次渲染扩大这个园
+        float camZ = cos(glfwGetTime()) * radius;
+
+        view = glm::lookAt(glm::vec3(0, 0.0, 3),
+                           glm::vec3(0.0, 0.0, 0.0),
+                           glm::vec3(0.0, 1.0, 0.0));
 
         glm::mat4 projection(1.0);
         int screenWidth = SCR_WIDTH, screenHeight = SCR_HEIGHT;
