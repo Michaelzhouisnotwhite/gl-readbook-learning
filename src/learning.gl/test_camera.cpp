@@ -1,3 +1,4 @@
+#include <functional>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -263,11 +264,11 @@ void display() {
         //                    glm::vec3(0.0, 1.0, 0.0));
 
         float radius = 10.0;  // 摄像机绕该半径旋转，同时始终朝向0, 0, 0点
-        float camX = sin(glfwGetTime()) * radius;  // 每次渲染扩大这个园
+        float camX = sin(glfwGetTime()) * radius;  // 围绕原点，在x, z平面上画圆
         float camZ = cos(glfwGetTime()) * radius;
 
-        view = glm::lookAt(glm::vec3(0, 0.0, 3),
-                           glm::vec3(0.0, 0.0, 0.0),
+        view = glm::lookAt(glm::vec3(camX, 0.0, camZ),
+                           glm::vec3(-0.0, -0.0, 0.0),
                            glm::vec3(0.0, 1.0, 0.0));
 
         glm::mat4 projection(1.0);

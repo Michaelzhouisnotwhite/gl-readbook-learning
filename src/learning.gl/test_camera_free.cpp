@@ -72,6 +72,62 @@ u32 VAOs[1];
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+static float deltaTime = 0.0f;  // 当前帧与上一帧的时间差
+static float lastFrame = 0.0f;  // 上一帧的时间
+static float mixValue = 0.5;
+
+float lastX = SCR_WIDTH / 2, lastY = SCR_HEIGHT / 2;
+
+float yaw = 0, pitch = 0;
+
+float fov = 45;
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+  if(fov >= 1.0f && fov <= 45.0f)
+    fov -= yoffset;
+  if(fov <= 1.0f)
+    fov = 1.0f;
+  if(fov >= 45.0f)
+    fov = 45.0f;
+}
+
+void (*mouse_callback)(GLFWwindow*, double, double) =
+    [](GLFWwindow* window, double xpos, double ypos) {
+        static bool firstMouse = true;
+        if (firstMouse) {
+            lastX = xpos;
+            lastY = ypos;
+            firstMouse = false;
+        }
+        float xoffset = xpos - lastX;
+        float yoffset = lastY - ypos;  // 注意这里是相反的，因为y坐标是从底部往顶部依次增大的
+
+        lastX = xpos;
+        lastY = ypos;
+
+        float sensitivity = 0.05f;
+        xoffset *= sensitivity;
+        yoffset *= sensitivity;
+
+        yaw += xoffset;
+        pitch += yoffset;
+
+        if (pitch > 89.0f)
+            pitch = 89.0f;
+        if (pitch < -89.0f)
+            pitch = -89.0f;
+
+        glm::vec3 front;
+        front.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
+        front.y = sin(glm::radians(pitch));
+        front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
+        cameraFront = glm::normalize(front);
+    };
 void init() {
     glEnable(GL_DEPTH_TEST);
 
@@ -181,19 +237,20 @@ void init() {
     shader_program_->use();
     shader_program_->setInt("ourTexture", 0);
     shader_program_->setInt("ourTexture2", 1);
-}
-float mixValue = 0.5;
-void display() {
-    glClearColor(0.2, 0.3, 0.3, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture1);
-
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, texture2);
 
     processInput = [](GLFWwindow* window) {
+        float currentTime = glfwGetTime();
+        deltaTime = currentTime - lastFrame;
+        float cameraSpeed = 2.5f * deltaTime;  // 当时间差大（电脑性能差）就位移的更多
+        lastFrame = currentTime;
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+            cameraPos += cameraSpeed * cameraFront;
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+            cameraPos -= cameraSpeed * cameraFront;
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+            cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+            cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
 
@@ -210,6 +267,17 @@ void display() {
                 mixValue = 0.0f;
         }
     };
+}
+
+void display() {
+    glClearColor(0.2, 0.3, 0.3, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture2);
 
     // 更多的立方体，每个立方体在世界坐标中的位置
     Vec<glm::vec3> cubePositions = {glm::vec3(0.0f, 0.0f, 0.0f),
@@ -244,15 +312,15 @@ void display() {
         model = glm::rotate(model, glm::radians(angle), glm::vec3(0.f, 1.f, 1.0f));
 
         glm::mat4 view(1.0);
-        // 向远处移动
-        view = glm::translate(view, glm::vec3(1.0, 1.0, -3.));
+        // cameraPos + cameraFront让视角始终向前看，看向的地方始终是z轴的负方向
+        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
         glm::mat4 projection(1.0);
         int screenWidth = SCR_WIDTH, screenHeight = SCR_HEIGHT;
         // 1. fov角度通常为45 (Field of View)
         // 宽高比
         // 最近裁剪平面和最远裁剪平面
-        projection = glm::perspective(glm::radians(45.0f),
+        projection = glm::perspective(glm::radians(fov),
                                       (float)(screenWidth) / (float)screenHeight,
                                       0.1f,
                                       100.0f);
@@ -281,7 +349,9 @@ int main(int argc, char** argv)
 
     glfwMakeContextCurrent(window);
     gl3wInit();
-
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetScrollCallback(window, scroll_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
     init();
 
     while (!glfwWindowShouldClose(window)) {
