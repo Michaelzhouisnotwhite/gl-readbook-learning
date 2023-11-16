@@ -6,6 +6,9 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 class ShaderBase {
 public:
     u32 ID;
@@ -17,6 +20,12 @@ public:
     }
     void setFloat(const String& name, float value) const {
         glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+    }
+    void setMatrix4f(const String& name, glm::mat4 mat) {
+        glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()),
+                           1,
+                           GL_FALSE,
+                           glm::value_ptr(mat));
     }
     void use() {
         glUseProgram(ID);
