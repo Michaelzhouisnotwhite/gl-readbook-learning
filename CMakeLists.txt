@@ -20,6 +20,20 @@ execute_process(
 )
 
 add_subdirectory(lib/glm)
+
+file(GLOB imgui_srcs lib/imgui/*.cpp)
+file(GLOB imgui_hdrs lib/imgui/*.h)
+file(GLOB imgui_backend_srcs lib/imgui/backends/*_opengl3.cpp)
+file(GLOB imgui_backend_hdrs lib/imgui/backends/*_opengl3.h)
+
+file(GLOB imgui_backend_deps_srcs lib/imgui/backends/*_glfw.cpp)
+file(GLOB imgui_backend_deps_hdrs lib/imgui/backends/*_glfw.h)
+message("imgui_srcs: " ${imgui_srcs})
+message("imgui_backend_srcs: " ${imgui_backend_srcs})
+message("imgui_backend_deps_hdrs: " ${imgui_backend_deps_hdrs})
+add_library(imgui STATIC ${imgui_srcs} ${imgui_hdrs} ${imgui_backend_srcs} ${imgui_backend_deps_srcs} ${imgui_backend_hdrs} ${imgui_backend_deps_hdrs})
+target_include_directories(imgui PUBLIC lib/imgui lib/imgui/backends)
+
 if(WIN32)
   # find_package(glfw3 REQUIRED PATHS ${CMAKE_BINARY_DIR}/lib/glfw_install/cmake NO_DEFAULT_PATH)
   # include(CheckCXXCompilerFlag)
@@ -122,7 +136,9 @@ foreach(test_file ${my_test_files})
   add_executable(${test_file_name} WIN32 ${test_file} ${COMMON_HEADERS})
   target_link_directories(${test_file_name} BEFORE PRIVATE ${CMAKE_BINARY_DIR}/lib/glfw_install/lib)
   target_link_libraries(${test_file_name} ${COMMON_LIBS} toy::generic MyShader glm::glm)
+  target_link_libraries(${test_file_name} imgui)
   target_include_directories(${test_file_name} PRIVATE ${CMAKE_BINARY_DIR}/include)
+
   if(MSVC)
     configure_file(${PROJECT_SOURCE_DIR}/build/templates/vs2013.vcxproj.user.in ${CMAKE_CURRENT_BINARY_DIR}/${EXAMPLE}.vcxproj.user @ONLY)
   endif(MSVC)
@@ -151,6 +167,12 @@ target_link_directories(MyShader PUBLIC ${CMAKE_BINARY_DIR}/lib/glfw_install/lib
 target_link_libraries(MyShader PRIVATE glfw3 toy::generic)
 target_include_directories(MyShader PUBLIC include)
 
+add_library(MyCamera src/Camera.cpp include/Camera.hpp)
+target_link_libraries(MyCamera PRIVATE ${COMMON_LIBS} glm::glm)
+target_link_directories(MyCamera PUBLIC ${CMAKE_BINARY_DIR}/lib/glfw_install/lib)
+target_link_libraries(MyCamera PRIVATE glfw3 toy::generic)
+target_include_directories(MyCamera PUBLIC include)
+
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_LINUX")
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -169,10 +191,11 @@ endif()
 
 file(GLOB asserts ${CMAKE_SOURCE_DIR}/bin/media/*)
 
-set(path_macro_path  ${CMAKE_BINARY_DIR}/include/path_macro.h)
+set(path_macro_path ${CMAKE_BINARY_DIR}/include/path_macro.h)
 file(WRITE ${path_macro_path} "")
 file(APPEND ${path_macro_path} "#ifndef PATH_MACRO_PATH\n")
 file(APPEND ${path_macro_path} "#define PATH_MACRO_PATH\n")
+
 foreach(assert ${asserts})
   message("assert: ${assert}")
   get_filename_component(name ${assert} NAME)
@@ -181,5 +204,5 @@ foreach(assert ${asserts})
   file(APPEND ${path_macro_path} "#define ${name_macros} \"${assert}\"\n")
   message("to macro: " "#define ${name_macros} \"${assert}\"\n")
 endforeach()
-file(APPEND ${path_macro_path} "#endif // PATH_MACRO_PATH\n")
 
+file(APPEND ${path_macro_path} "#endif // PATH_MACRO_PATH\n")

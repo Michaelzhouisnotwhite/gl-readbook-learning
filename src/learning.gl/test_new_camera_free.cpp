@@ -1,4 +1,5 @@
 #include <functional>
+#include "Camera.hpp"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -72,32 +73,26 @@ u32 texture1;
 u32 texture2;
 u32 VBOs[1];
 u32 VAOs[1];
+unsigned int SCR_WIDTH = 800;
+unsigned int SCR_HEIGHT = 600;
 
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
-
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+Camera* camera;
 
 static float deltaTime = 0.0f;  // 当前帧与上一帧的时间差
 static float lastFrame = 0.0f;  // 上一帧的时间
-static float mixValue = 0.5;
+static float mixValue = 0.1;
 
 float lastX = SCR_WIDTH / 2, lastY = SCR_HEIGHT / 2;
 
 float yaw = -90, pitch = 0;
 
 float fov = 45;
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    if (fov >= 1.0f && fov <= 45.0f)
-        fov -= yoffset;
-    if (fov <= 1.0f)
-        fov = 1.0f;
-    if (fov >= 45.0f)
-        fov = 45.0f;
+    camera->ProcessMouseScroll(yoffset);
 }
+void imgui_init();
 
 void (*mouse_callback)(GLFWwindow*, double, double) =
     [](GLFWwindow* window, double xpos, double ypos) {
@@ -107,34 +102,18 @@ void (*mouse_callback)(GLFWwindow*, double, double) =
             lastY = ypos;
             firstMouse = false;
         }
-        float xoffset = xpos - lastX;
+        float xoffset = xpos - lastX;  // x, ypos都是相对于窗口左上角的坐标
         float yoffset = lastY - ypos;  // 注意这里是相反的，因为y坐标是从底部往顶部依次增大的
-
         lastX = xpos;
         lastY = ypos;
 
-        float sensitivity = 0.05f;
-        xoffset *= sensitivity;
-        yoffset *= sensitivity;
-
-        yaw += xoffset;
-        pitch += yoffset;
-
-        if (pitch > 89.0f)
-            pitch = 89.0f;
-        if (pitch < -89.0f)
-            pitch = -89.0f;
-
-        glm::vec3 front;
-        front.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
-        front.y = sin(glm::radians(pitch));
-        front.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
-        cameraFront = glm::normalize(front);
+        camera->ProcessMouseMovement(xoffset, yoffset);
     };
 void init() {
     glEnable(GL_DEPTH_TEST);
 
     shader_program_ = new ShaderCompiler(vertexShaderSource, fragmentShaderSource);
+    camera = new Camera({0, 0, 3});
 
     int width, height, n_channels;
     stbi_set_flip_vertically_on_load(true);
@@ -247,13 +226,13 @@ void init() {
         float cameraSpeed = 2.5f * deltaTime;  // 当时间差大（电脑性能差）就位移的更多
         lastFrame = currentTime;
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-            cameraPos += cameraSpeed * cameraFront;
+            camera->ProcessKeyboard(FORWARD, deltaTime);
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-            cameraPos -= cameraSpeed * cameraFront;
+            camera->ProcessKeyboard(BACKWARD, deltaTime);
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+            camera->ProcessKeyboard(LEFT, deltaTime);
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-            cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+            camera->ProcessKeyboard(RIGHT, deltaTime);
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
 
@@ -314,9 +293,7 @@ void display() {
         }
         model = glm::rotate(model, glm::radians(angle), glm::vec3(0.f, 1.f, 1.0f));
 
-        glm::mat4 view(1.0);
-        // cameraPos + cameraFront让视角始终向前看，看向的地方始终是z轴的负方向
-        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        glm::mat4 view = camera->GetViewMatrix();
 
         glm::mat4 projection(1.0);
         int screenWidth = SCR_WIDTH, screenHeight = SCR_HEIGHT;
@@ -359,30 +336,32 @@ int main(int argc, char** argv)
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
-    // io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;      // IF using Docking Branch
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window,
                                  true);  // Second param install_callback=true will install
                                          // GLFW callbacks and chain to existing ones.
-    ImGui_ImplOpenGL3_Init();
+    ImGui_ImplOpenGL3_Init("#version 330");
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetScrollCallback(window, scroll_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
+    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    // glfwSetScrollCallback(window, scroll_callback);
+    // glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     init();
 
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
         display();
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        // glfwSwapBuffers(window);
+
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-        ImGui::ShowDemoWindow();  // Show demo window! :)
+        imgui_init();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        glfwPollEvents();
+        glfwSwapBuffers(window);
     }
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -392,4 +371,44 @@ int main(int argc, char** argv)
     glfwTerminate();
 
     return 0;
+}
+
+// glfw: whenever the window size changed (by OS or user resize) this callback function
+// executes
+// ---------------------------------------------------------------------------------------------
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    // make sure the viewport matches the new window dimensions; note that width and
+    // height will be significantly larger than specified on retina displays.
+    glViewport(0, 0, width, height);
+    SCR_WIDTH = width;
+    SCR_HEIGHT = height;
+}
+
+void imgui_init() {
+    ImGui::NewFrame();
+    ImGui::ShowDemoWindow();  // Show demo window! :)
+
+    if (ImGui::Begin("Debug")){
+
+        if (ImGui::Button("left")){
+
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("up")){
+
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("down")){
+
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("right")){
+
+        }
+        ImGui::SameLine();
+        ImGui::Text("%.4f", 1.1111);
+        
+        ImGui::End();
+    }
+
 }
