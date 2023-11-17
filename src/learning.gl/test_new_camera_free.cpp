@@ -1,13 +1,16 @@
+#include "vgl.h"
+#if WIN32
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
+#include <windows.h>
+#endif
 #include <functional>
 #include "Camera.hpp"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#include <GL3/gl3.h>
-#include <GL3/gl3w.h>
-
 #include "LoadShaders.h"
-#include "vgl.h"
 #include <GLFW/glfw3.h>
 #include <array>
 #include <cmath>
@@ -300,10 +303,11 @@ void display() {
         // 1. fov角度通常为45 (Field of View)
         // 宽高比
         // 最近裁剪平面和最远裁剪平面
-        projection = glm::perspective(glm::radians(fov),
-                                      (float)(screenWidth) / (float)screenHeight,
-                                      0.1f,
-                                      100.0f);
+        projection =
+            glm::perspective(glm::radians(fov),
+                             screenHeight ? ((float)(screenWidth) / (float)screenHeight) : 0.0001f,
+                             0.1f,
+                             100.0f);
 
         shader_program_->setMatrix4f("model", model);
 
@@ -336,6 +340,9 @@ int main(int argc, char** argv)
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+
+    io.FontGlobalScale = 2;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window,
@@ -387,28 +394,74 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 void imgui_init() {
     ImGui::NewFrame();
     ImGui::ShowDemoWindow();  // Show demo window! :)
-
-    if (ImGui::Begin("Debug")){
-
-        if (ImGui::Button("left")){
-
+    ImGui::ShowDebugLogWindow();
+    ImGui::ShowStackToolWindow();
+    float currentTime = glfwGetTime();
+    deltaTime = currentTime - lastFrame;
+    float cameraSpeed = 2.5f * deltaTime;  // 当时间差大（电脑性能差）就位移的更多
+    lastFrame = currentTime;
+    if (ImGui::Begin("Debug", NULL)) {
+        ImGui::SetWindowPos(ImVec2(0, 0), ImGuiCond_Once);
+        ImGui::Text("front: | %.3f, %.3f, %.3f |",
+                    camera->Front.x,
+                    camera->Front.y,
+                    camera->Front.z);
+        ImGui::Text("Up: | %.3f, %.3f, %.3f |", camera->Up.x, camera->Up.y, camera->Up.z);
+        ImGui::Text("position: | %.3f, %.3f, %.3f | (camera pos)",
+                    camera->Position.x,
+                    camera->Position.y,
+                    camera->Position.z);
+        auto center = camera->Position + camera->Front;
+        ImGui::Text("Position + Front: | %.3f, %.3f, %.3f | (center)",
+                    center.x,
+                    center.y,
+                    center.z);
+        ImGui::Text("right: | %.3f, %.3f, %.3f |",
+                    camera->Right.x,
+                    camera->Right.y,
+                    camera->Right.z);
+        ImGui::Text("pitch: | %.3f |", camera->Pitch);
+        ImGui::Text("yaw: | %.3f |", camera->Yaw);
+        ImGui::PushButtonRepeat(true);
+        if (ImGui::ArrowButton("#a", ImGuiDir_Left)) {
+            camera->ProcessKeyboard(LEFT, deltaTime);
         }
         ImGui::SameLine();
-        if (ImGui::Button("up")){
-
+        if (ImGui::ArrowButton("#w", ImGuiDir_Up)) {
+            camera->ProcessKeyboard(FORWARD, deltaTime);
         }
         ImGui::SameLine();
-        if (ImGui::Button("down")){
-
+        if (ImGui::ArrowButton("#s", ImGuiDir_Down)) {
+            camera->ProcessKeyboard(BACKWARD, deltaTime);
         }
         ImGui::SameLine();
-        if (ImGui::Button("right")){
+        if (ImGui::ArrowButton("#d", ImGuiDir_Right)) {
+            camera->ProcessKeyboard(RIGHT, deltaTime);
+        }
+        ImGui::PopButtonRepeat();
 
+        ImGui::PushButtonRepeat(true);
+        if (ImGui::ArrowButton("##a", ImGuiDir_Left)) {
+            camera->ProcessMouseMovement(-13, 0);
         }
         ImGui::SameLine();
-        ImGui::Text("%.4f", 1.1111);
-        
+        if (ImGui::ArrowButton("##w", ImGuiDir_Up)) {
+            camera->ProcessMouseMovement(-0, 13);
+        }
+        ImGui::SameLine();
+        if (ImGui::ArrowButton("##s", ImGuiDir_Down)) {
+            camera->ProcessMouseMovement(-0, -13);
+        }
+        ImGui::SameLine();
+        if (ImGui::ArrowButton("##d", ImGuiDir_Right)) {
+            camera->ProcessMouseMovement(13, 0);
+        }
+
+        ImGui::PopButtonRepeat();
+        if (ImGui::Button("reset")) {
+            delete camera;
+            camera = new Camera({0, 0, 3});
+        }
         ImGui::End();
     }
-
 }

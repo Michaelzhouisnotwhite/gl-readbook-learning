@@ -9,14 +9,14 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(toy)
 execute_process(
-  COMMAND ${CMAKE_COMMAND} -S${CMAKE_SOURCE_DIR}/lib/glfw -B${CMAKE_BINARY_DIR}/lib/glfw_build
-  -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/lib/glfw_install
+  COMMAND ${CMAKE_COMMAND} -S${CMAKE_SOURCE_DIR}/lib/glfw-3.3.8 -B${CMAKE_BINARY_DIR}/lib/glfw_build
+  -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/lib/glfw_install -D_GLFW_WIN32=1
 )
 execute_process(
   COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/lib/glfw_build --config Release
 )
 execute_process(
-  COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR}/lib/glfw_build
+  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/lib/glfw_build --target install --config Release
 )
 
 add_subdirectory(lib/glm)
@@ -31,6 +31,10 @@ file(GLOB imgui_backend_deps_hdrs lib/imgui/backends/*_glfw.h)
 message("imgui_srcs: " ${imgui_srcs})
 message("imgui_backend_srcs: " ${imgui_backend_srcs})
 message("imgui_backend_deps_hdrs: " ${imgui_backend_deps_hdrs})
+if (WIN32)
+  file(GLOB imgui_win32 lib/imgui/backends/*_win32.cpp)
+  list(APPEND ${imgui_backend_srcs} ${imgui_win32})
+endif()
 add_library(imgui STATIC ${imgui_srcs} ${imgui_hdrs} ${imgui_backend_srcs} ${imgui_backend_deps_srcs} ${imgui_backend_hdrs} ${imgui_backend_deps_hdrs})
 target_include_directories(imgui PUBLIC lib/imgui lib/imgui/backends)
 

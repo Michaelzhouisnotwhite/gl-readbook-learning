@@ -1,11 +1,17 @@
 #ifndef INCLUDE_CAMERA
 #define INCLUDE_CAMERA
+#if WIN32
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <windows.h>
+#include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
+#endif
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <GL3/gl3.h>
-#include <GL3/gl3w.h>
+// #include <GL3/gl3.h>
+// #include <GL3/gl3w.h>
 #include <GLFW/glfw3.h>
 #include <vector>
 
