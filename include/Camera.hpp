@@ -45,7 +45,10 @@ public:
     float MovementSpeed;
     float MouseSensitivity;
     float Zoom;
-
+    bool fps_ = false;
+    void setFpsCamera(bool fps) {
+        fps_ = fps;
+    }
     // constructor with vectors
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f),
            glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
@@ -90,6 +93,16 @@ public:
     // the form of camera defined ENUM (to abstract it from windowing systems)
     void ProcessKeyboard(Camera_Movement direction, float deltaTime) {
         float velocity = MovementSpeed * deltaTime;
+        if (fps_) {
+            if (direction == FORWARD)
+                Position += Front * velocity;
+            if (direction == BACKWARD)
+                Position -= Front * velocity;
+            if (direction == LEFT)
+                Position -= Right * velocity;
+            if (direction == RIGHT)
+                Position += Right * velocity;
+        }
         if (direction == FORWARD)
             Position += Front * velocity;
         if (direction == BACKWARD)
@@ -148,4 +161,5 @@ private:
         Up = glm::normalize(glm::cross(Right, Front));
     }
 };
+
 #endif /* INCLUDE_CAMERA */
