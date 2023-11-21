@@ -65,8 +65,7 @@ void main()
 }
 )";
 
-std::function<void(GLFWwindow*)> processInput = [](GLFWwindow*) {
-};
+std::function<void(GLFWwindow*)> processInput = [](GLFWwindow*) {};
 
 u32 vertexShader;
 u32 fragmentShader;
@@ -82,8 +81,8 @@ unsigned int SCR_HEIGHT = 600;
 
 Camera* camera;
 
-static float deltaTime = 0.0f; // 当前帧与上一帧的时间差
-static float lastFrame = 0.0f; // 上一帧的时间
+static float deltaTime = 0.0f;  // 当前帧与上一帧的时间差
+static float lastFrame = 0.0f;  // 上一帧的时间
 static float mixValue = 0.1;
 
 float lastX = SCR_WIDTH / 2, lastY = SCR_HEIGHT / 2;
@@ -101,21 +100,23 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 void imgui_init();
 
 void (*mouse_callback)(GLFWwindow*, double, double) =
-        [](GLFWwindow* window, double xpos, double ypos) {
-    static bool firstMouse = true;
-    if (firstMouse) {
+    [](GLFWwindow* window, double xpos, double ypos) {
+        static bool firstMouse = true;
+        if (firstMouse) {
+            lastX = xpos;
+            lastY = ypos;
+            firstMouse = false;
+        }
+        float xoffset = xpos - lastX;  // x, ypos都是相对于窗口左上角的坐标
+        float yoffset = lastY - ypos;  // 注意这里是相反的，因为y坐标是从底部往顶部依次增大的
         lastX = xpos;
         lastY = ypos;
-        firstMouse = false;
-    }
-    float xoffset = xpos - lastX; // x, ypos都是相对于窗口左上角的坐标
-    float yoffset = lastY - ypos; // 注意这里是相反的，因为y坐标是从底部往顶部依次增大的
-    lastX = xpos;
-    lastY = ypos;
 
-    camera->ProcessMouseMovement(xoffset, yoffset);
-};
+        camera->ProcessMouseMovement(xoffset, yoffset);
+    };
 
+u32 VBO_coordinate;
+u32 VAO_coordinate;
 void init() {
     glEnable(GL_DEPTH_TEST);
 
@@ -164,6 +165,9 @@ void init() {
     glGenVertexArrays(1, VAOs);
     glGenBuffers(1, VBOs);
 
+    gl3wGenVertexArrays(1, &VAO_coordinate);
+    gl3wGenBuffers(1, &VBO_coordinate);
+
     // clang-format off
     float vertices[] = {
         -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
@@ -208,21 +212,24 @@ void init() {
         -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
         -0.5f, 0.5f, -0.5f, 0.0f, 1.0f
     };
+
     // clang-format on
+
     glBindVertexArray(VAOs[0]);
     glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), NULL);
     glEnableVertexAttribArray(0);
-
     glVertexAttribPointer(2,
                           2,
                           GL_FLOAT,
                           GL_FALSE,
                           5 * sizeof(float),
-                          (void *)(3 * sizeof(float)));
+                          (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(2);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
     shader_program_->use();
     shader_program_->setInt("ourTexture", 0);
     shader_program_->setInt("ourTexture2", 1);
@@ -230,7 +237,7 @@ void init() {
     processInput = [](GLFWwindow* window) {
         float currentTime = glfwGetTime();
         deltaTime = currentTime - lastFrame;
-        float cameraSpeed = 2.5f * deltaTime; // 当时间差大（电脑性能差）就位移的更多
+        float cameraSpeed = 2.5f * deltaTime;  // 当时间差大（电脑性能差）就位移的更多
         lastFrame = currentTime;
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
             camera->ProcessKeyboard(FORWARD, deltaTime);
@@ -244,13 +251,13 @@ void init() {
             glfwSetWindowShouldClose(window, true);
 
         if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-            mixValue += 0.005f; // change this value accordingly (might be too slow or too
+            mixValue += 0.005f;  // change this value accordingly (might be too slow or too
             // fast based on system hardware)
             if (mixValue >= 1.0f)
                 mixValue = 1.0f;
         }
         if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-            mixValue -= 0.005f; // change this value accordingly (might be too slow or too
+            mixValue -= 0.005f;  // change this value accordingly (might be too slow or too
             // fast based on system hardware)
             if (mixValue <= 0.0f)
                 mixValue = 0.0f;
@@ -269,18 +276,17 @@ void display() {
     glBindTexture(GL_TEXTURE_2D, texture2);
 
     // 更多的立方体，每个立方体在世界坐标中的位置
-    Vec<glm::vec3> cubePositions = {
-        glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(2.0f, 5.0f, -15.0f),
-        glm::vec3(-1.5f, -2.2f, -2.5f),
-        glm::vec3(-3.8f, -2.0f, -12.3f),
-        glm::vec3(2.4f, -0.4f, -3.5f),
-        glm::vec3(-1.7f, 3.0f, -7.5f),
-        glm::vec3(1.3f, -2.0f, -2.5f),
-        glm::vec3(1.5f, 2.0f, -2.5f),
-        glm::vec3(1.5f, 0.2f, -1.5f),
-        glm::vec3(-1.3f, 1.0f, -1.5f)
-    };
+    Vec<glm::vec3> cubePositions = {glm::vec3(0.0f, 0.0f, 0.0f),
+                                    glm::vec3(2.0f, 5.0f, -15.0f),
+                                    glm::vec3(-1.5f, -2.2f, -2.5f),
+                                    glm::vec3(-3.8f, -2.0f, -12.3f),
+                                    glm::vec3(2.4f, -0.4f, -3.5f),
+                                    glm::vec3(-1.7f, 3.0f, -7.5f),
+                                    glm::vec3(1.3f, -2.0f, -2.5f),
+                                    glm::vec3(1.5f, 2.0f, -2.5f),
+                                    glm::vec3(1.5f, 0.2f, -1.5f),
+                                    glm::vec3(-1.3f, 1.0f, -1.5f)};
+
     shader_program_->use();
     shader_program_->setFloat("mixValue", mixValue);
 
@@ -297,8 +303,7 @@ void display() {
             model = glm::rotate(model,
                                 (float)glfwGetTime() * glm::radians(50.0f),
                                 glm::vec3(0.5f, 1.f, 0.0f));
-        }
-        else {
+        } else {
             // 不旋转
         }
         model = glm::rotate(model, glm::radians(angle), glm::vec3(0.f, 1.f, 1.0f));
@@ -310,11 +315,11 @@ void display() {
         // 1. fov角度通常为45 (Field of View)
         // 宽高比
         // 最近裁剪平面和最远裁剪平面
-        projection =
-                glm::perspective(glm::radians(fov),
-                                 screenHeight ? ((float)(screenWidth) / (float)screenHeight) : 0.0001f,
-                                 0.1f,
-                                 100.0f);
+        projection = glm::perspective(
+            glm::radians(fov),
+            screenHeight ? ((float)(screenWidth) / (float)screenHeight) : 0.0001f,
+            0.1f,
+            100.0f);
 
         shader_program_->setMatrix4f("model", model);
 
@@ -344,16 +349,16 @@ int main(int argc, char** argv)
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO&io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
 
     io.FontGlobalScale = 2;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window,
-                                 true); // Second param install_callback=true will install
+                                 true);  // Second param install_callback=true will install
     // GLFW callbacks and chain to existing ones.
     ImGui_ImplOpenGL3_Init("#version 330");
 
@@ -400,12 +405,12 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 
 void imgui_init() {
     ImGui::NewFrame();
-    ImGui::ShowDemoWindow(); // Show demo window! :)
+    ImGui::ShowDemoWindow();  // Show demo window! :)
     ImGui::ShowDebugLogWindow();
     ImGui::ShowStackToolWindow();
     float currentTime = glfwGetTime();
     deltaTime = currentTime - lastFrame;
-    float cameraSpeed = 2.5f * deltaTime; // 当时间差大（电脑性能差）就位移的更多
+    float cameraSpeed = 2.5f * deltaTime;  // 当时间差大（电脑性能差）就位移的更多
     lastFrame = currentTime;
     if (ImGui::Begin("Debug", NULL)) {
         ImGui::SetWindowPos(ImVec2(0, 0), ImGuiCond_Once);
@@ -464,10 +469,22 @@ void imgui_init() {
             camera->ProcessMouseMovement(13, 0);
         }
 
+        static bool fps = false;
+        static bool use_custom_lookat = false;
         ImGui::PopButtonRepeat();
         if (ImGui::Button("reset")) {
             delete camera;
             camera = new Camera({0, 0, 3});
+            camera->setFpsCamera(fps);
+            camera->useMyLookAt(use_custom_lookat);
+        }
+        ImGui::SameLine();
+        if (ImGui::Checkbox("fps", &fps)) {
+            camera->setFpsCamera(fps);
+        }
+        ImGui::SameLine();
+        if (ImGui::Checkbox("use custom lookat", &use_custom_lookat)) {
+            camera->useMyLookAt(true);
         }
         ImGui::End();
     }
