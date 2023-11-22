@@ -486,6 +486,6 @@ void imgui_init() {
         if (ImGui::Checkbox("use custom lookat", &use_custom_lookat)) {
             camera->useMyLookAt(true);
         }
-        ImGui::End();
     }
+    ImGui::End();
 }

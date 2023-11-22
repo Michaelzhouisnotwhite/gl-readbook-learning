@@ -53,7 +53,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
     };
 
     // 片段着色器
-    fragment = glCreateShader(GL_VERTEX_SHADER);
+    fragment = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment, 1, &fShaderCode, NULL);
     glCompileShader(fragment);
     // 打印编译错误（如果有的话）
@@ -68,7 +68,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
     ID = glCreateProgram();
     glAttachShader(ID, vertex);
     glAttachShader(ID, fragment);
-
+    glLinkProgram(ID);
     // 打印连接错误（如果有的话）
     glGetProgramiv(ID, GL_LINK_STATUS, &success);
     if (!success) {
