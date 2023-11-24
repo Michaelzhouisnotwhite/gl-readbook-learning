@@ -1,5 +1,3 @@
-#ifndef SRC_LEARNING_GL_TEST_LIGHT1
-#define SRC_LEARNING_GL_TEST_LIGHT1
 #include <memory>
 #include "vgl.h"
 #if WIN32
@@ -46,50 +44,50 @@ public:
     u32 cube_texture_;
     float deltaTime, lastFrame;
     u32 light_vao_;
-    glm::vec3 light_pos_ = {0.8f, 0.1f, 1.0f};
+    glm::vec3 light_pos_ = {1.2f, 1.0f, 2.0f};
     // clang-format off
     Vec<float> cube_vertexes_ = {
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,  0.0f,0.0f, -1.0f,
-        0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,0.0f, -1.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,0.0f, -1.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,0.0f, -1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,0.0f, -1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,0.0f, -1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,0.0f, 1.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,0.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,0.0f, 1.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,0.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
 
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, -1.0f, 0.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f, -1.0f, 0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, -1.0f, 0.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, -1.0f, 0.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, -1.0f, 0.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, -1.0f, 0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,0.0f,  0.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,0.0f,  0.0f,
-        0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,0.0f,  0.0f,
-        0.5f, -0.5f, -0.5f,  0.0f, 1.0f,1.0f, 0.0f,  0.0f,
-        0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,0.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,0.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
 
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,0.0f, -1.0f,  0.0f,
-        0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f,-1.0f,  0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,-1.0f,  0.0f,
-        0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,-1.0f,  0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,-1.0f,  0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,-1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
 
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,1.0f,  0.0f,
-        0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f,1.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,1.0f,  0.0f,
-        0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,1.0f,  0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,1.0f,  0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,1.0f,  0.0f
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
     };
     static void onFrameResizeCallBack(GLFWwindow* window, int width, int height){
         glViewport(0, 0, width, height);
@@ -119,35 +117,11 @@ public:
         // GLFW callbacks and chain to existing ones.
         ImGui_ImplOpenGL3_Init("#version 330");
         glEnable(GL_DEPTH_TEST);
-        lamp_shader_.reset(new Shader("./media/shaders/learning.ogl/cube_notexture.vs",
+        lamp_shader_.reset(new Shader("./media/shaders/learning.ogl/cube_light.vs",
                                       "./media/shaders/learning.ogl/cube_light.fs"));
 
-        int width, height, n_channels;
-        stbi_set_flip_vertically_on_load(true);
-        u8* data = stbi_load(CONTAINER_JPG, &width, &height, &n_channels, 0);
-        if (!data) {
-            throw std::runtime_error("Failed to load texture");
-        }
-        glGenTextures(1, &cube_texture_);
-        glBindTexture(GL_TEXTURE_2D, cube_texture_);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        glTexImage2D(GL_TEXTURE_2D,
-                     0,
-                     GL_RGB,
-                     width,
-                     height,
-                     0,
-                     GL_RGB,
-                     GL_UNSIGNED_BYTE,
-                     data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        stbi_image_free(data);
-        cube_shader_.reset(new Shader("./media/shaders/learning.ogl/cube.vs",
-                                      "./media/shaders/learning.ogl/cube.fs"));
+        cube_shader_.reset(new Shader("./media/shaders/learning.ogl/cube_notexture.vs",
+                                      "./media/shaders/learning.ogl/cube_notexture.fs"));
         camera_.reset(new Camera({0, 0, 3}));
         glGenVertexArrays(1, &cube_vao_);
         glGenBuffers(1, &cube_vbo_);
@@ -159,27 +133,20 @@ public:
                      GL_STATIC_DRAW);
 
         glBindVertexArray(cube_vao_);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(1,
                               3,
                               GL_FLOAT,
                               GL_FALSE,
-                              8 * sizeof(float),
-                              (void*)(5 * sizeof(float)));
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(2,
-                              2,
-                              GL_FLOAT,
-                              GL_FALSE,
-                              8 * sizeof(float),
+                              6 * sizeof(float),
                               (void*)(3 * sizeof(float)));
-        glEnableVertexAttribArray(2);
+        glEnableVertexAttribArray(1);
 
         glGenVertexArrays(1, &light_vao_);
         glBindVertexArray(light_vao_);
         glBindBuffer(GL_ARRAY_BUFFER, cube_vbo_);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0);
         glEnableVertexAttribArray(0);
     }
     void display() override {
@@ -189,8 +156,8 @@ public:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         cube_shader_->use();
         glm::mat4 cube_model(1.0);
-        cube_model = glm::rotate(cube_model, glm::radians(15.0f), {0, 1, 0});
-        cube_model = glm::rotate(cube_model, glm::radians(15.0f), {1, 0, 0});
+        // cube_model = glm::rotate(cube_model, glm::radians(15.0f), {0, 1, 0});
+        // cube_model = glm::rotate(cube_model, glm::radians(15.0f), {1, 0, 0});
         auto view = camera_->GetViewMatrix();
         auto projection = glm::perspective(glm::radians(camera_->Zoom),
                                            (float)width_ / (float)height_,
@@ -200,7 +167,6 @@ public:
         cube_shader_->setMatrix4f("view", view);
         cube_shader_->setMatrix4f("projection", projection);
         cube_shader_->setVec3f("lightPos", light_pos_);
-        cube_shader_->setVec3f("objColor", {1.0f, 1.0f, 1.0f});
         cube_shader_->setVec3f("viewPos", camera_->Position);
 
         glBindVertexArray(cube_vao_);
@@ -346,5 +312,9 @@ public:
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
 };
+int main(int args, char* argv[]) {
+    auto window = TestLightWindow();
 
-#endif /* SRC_LEARNING_GL_TEST_LIGHT1 */
+    window.show();
+    return 0;
+}

@@ -1,6 +1,5 @@
 #include "OpenglWindow.hpp"
-void OpenglWindow::onFrameResize(GLFWwindow*, int width, int height) {
-}
+
 void OpenglWindow::onMouseMoved(GLFWwindow*, double xpos, double ypos) {
 }
 void OpenglWindow::onScrollOccurred(GLFWwindow*, double, double) {
@@ -14,10 +13,7 @@ void OpenglWindow::initGlfw() {
 
     glfwMakeContextCurrent(window_);
     gl3wInit();
-    auto resize_cb = std::function<void(GLFWwindow*, int width, int height)>(
-                         std::bind(&OpenglWindow::onFrameResize, this, _1, _2, _3))
-                         .target<void(GLFWwindow*, int width, int height)>();
-    glfwSetFramebufferSizeCallback(window_, resize_cb);
+
 
     auto mouse_callback = std::function<void(GLFWwindow*, double, double)>(
                               std::bind(&OpenglWindow::onMouseMoved, this, _1, _2, _3))

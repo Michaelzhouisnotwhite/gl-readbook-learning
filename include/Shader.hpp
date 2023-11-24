@@ -27,6 +27,9 @@ public:
                            GL_FALSE,
                            glm::value_ptr(mat));
     }
+    void setVec3f(const String& name, glm::vec3 vec){
+        glUniform3fv(gl3wGetUniformLocation(ID, name.c_str()), 1, glm::value_ptr(vec));
+    }
     void use() {
         glUseProgram(ID);
     }
