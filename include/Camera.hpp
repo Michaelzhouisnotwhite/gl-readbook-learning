@@ -1,7 +1,7 @@
 #ifndef INCLUDE_CAMERA
 #define INCLUDE_CAMERA
 #include <functional>
-#if WIN32
+#if _WIN32
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <windows.h>
 #include <GLFW/glfw3.h>

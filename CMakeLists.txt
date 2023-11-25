@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 3.11)
 
 project(vermilion9)
 include(FetchContent)
+if(WIN32)
+    add_compile_definitions(WIN32)
+endif()
+if (UNIX)
+    add_compile_definitions(UNIX)
+endif()
 FetchContent_Declare(
     toy
     GIT_REPOSITORY https://github.com/Michaelzhouisnotwhite/My-CXX-Small-Toys

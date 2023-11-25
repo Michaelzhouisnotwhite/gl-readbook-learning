@@ -2,7 +2,7 @@
 #define INCLUDE_OPENGLWINDOW
 
 #include "vgl.h"
-#if WIN32
+#if _WIN32
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>

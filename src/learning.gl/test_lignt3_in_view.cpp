@@ -123,7 +123,6 @@ public:
         cube_shader_.reset(new Shader("./media/shaders/learning.ogl/cube_notexture.vs",
                                       "./media/shaders/learning.ogl/cube_notexture.fs"));
         camera_.reset(new Camera({0, 0, 3}));
-        camera_->MovementSpeed = 20.0;
         glGenVertexArrays(1, &cube_vao_);
         glGenBuffers(1, &cube_vbo_);
 

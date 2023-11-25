@@ -15,5 +15,5 @@ void main()
 
     FragPos = vec3(model * vec4(aPos, 1.0));
     Normal = mat3(transpose(inverse(model))) * aNormal; // 所有的计算都在片段着色器中，所以需要把法向量传入着色器中
-    gl_Position = projection * view * vec4(FragPos, 1.0);
+    gl_Position = projection * view * model * vec4(FragPos, 1.0);
 }
